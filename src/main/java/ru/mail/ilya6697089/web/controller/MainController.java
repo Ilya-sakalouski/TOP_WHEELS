@@ -1,5 +1,7 @@
 package ru.mail.ilya6697089.web.controller;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -11,6 +13,7 @@ import javax.servlet.http.HttpSession;
 @RequestMapping("/")
 public class MainController {
 
+    private static final Logger logger = LoggerFactory.getLogger(MainController.class);
     @GetMapping
     public String homepage() {
         return "startPage";
@@ -18,6 +21,7 @@ public class MainController {
     @PostMapping
     public String homepage(HttpSession httpSession) {
         if (httpSession.isNew()) {
+            logger.info("New session found");
             return "redirect:/user/login";
         } else {
             return "serviceSelection";

@@ -1,5 +1,7 @@
 package ru.mail.ilya6697089.web.controller;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -19,6 +21,7 @@ import java.util.Optional;
 @RequestMapping("/user")
 public class UserController {
 
+    private static final Logger logger = LoggerFactory.getLogger(UserController.class);
     private final UserService userService;
 
     public UserController(UserService userService) {
@@ -32,18 +35,22 @@ public class UserController {
     @PostMapping("/login")
     public String login(@Valid @ModelAttribute("user") UserLoginDto userLoginDto, BindingResult bindingResult, HttpSession session, Model model) {
         if (bindingResult.hasErrors()) {
+            logger.error("Validation failed");
             return "login";
         }
         Optional<User> currentUser = userService.findUserByEmail(userLoginDto.getEmail());
         if (currentUser.isPresent()) {
             if (currentUser.get().getPassword().equals(userLoginDto.getPassword())) {
                 session.setAttribute("currentUser", currentUser.get());
+                logger.info("Login success");
                 return "redirect:/onlineEntry/serviceSelection";
             } else {
+                logger.error("Wrong password");
                 model.addAttribute("message", "Wrong password");
                 return "login";
             }
         } else {
+            logger.error("User is not present");
             model.addAttribute("message", "No such user");
             return "login";
         }
@@ -56,12 +63,15 @@ public class UserController {
     @PostMapping("/registration")
     public String registration(@Valid @ModelAttribute("user") User user, BindingResult bindingResult, Model model) {
         if (bindingResult.hasErrors()) {
+            logger.error("Validation failed");
             return "registration";
         }
         if (!userService.findUserByEmail(user.getEmail()).isPresent()) {
             userService.saveUser(user);
+            logger.info("User successfully saved");
             return "redirect:/user/login";
         } else {
+            logger.error("User already exists");
             model.addAttribute("message", "User already exists");
             return "registration";
         }
@@ -70,6 +80,7 @@ public class UserController {
     @GetMapping("/logout")
     public String logout(HttpSession session) {
         session.invalidate();
+        logger.info("Session successfully invalidated");
         return "redirect:/";
     }
 }
